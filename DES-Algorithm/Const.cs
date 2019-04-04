@@ -133,5 +133,6 @@ namespace DES_Algorithm
 
         public static int[] LeftShiftsINV = { 0,1, 2, 2, 2, 2, 2,2, 1, 2, 2, 2, 2, 2, 2, 1 };
 
+
     }
 }
