@@ -10,64 +10,31 @@ namespace DES_Algorithm
     class Program
     {
         
-
         static void Main(string[] args)
         {
+            
             Program program = new Program();
-
-            int[] M = new int[64]
-            {
-                0, 0, 0, 0,
-                0, 0, 0, 1,
-                0, 0, 1, 0,
-                0, 0, 1, 1,
-                0, 1, 0, 0,
-                0, 1, 0, 1,
-                0, 1, 1, 0,
-                0, 1, 1, 1,
-                1, 0, 0, 0,
-                1, 0, 0, 1,
-                1, 0, 1, 0,
-                1, 0, 1, 1,
-                1, 1, 0, 0,
-                1, 1, 0, 1,
-                1, 1, 1, 0,
-                1, 1, 1, 1
-            };      // plainText
-            int[] KOriginal = new int[64]
-            {
-                0,0,0,1,
-                0,0,1,1,
-                0,0,1,1,
-                0,1,0,0,
-                0,1,0,1,
-                0,1,1,1,
-                0,1,1,1,
-                1,0,0,1,
-                1,0,0,1,
-                1,0,1,1,
-                1,0,1,1,
-                1,1,0,0,
-                1,1,0,1,
-                1,1,1,1,
-                1,1,1,1,
-                0,0,0,1
-            };              // Original key
+            string plainText = "mikailse";
+            int[] M = program.StringToBinary(plainText);     // plainText
+            int[] KOriginal = program.StringToBinary("Anahtarr");              // Original key
 
             #region Şifreleme
 
             
             Console.WriteLine("Şifresiz Metin");
+            Console.Write(plainText+"  ");
             for (int k = 0; k < M.Length; k++)
             {
                 Console.Write(M[k]);
             }
 
-            int[,] roundKeys = program.EncodingKeys(KOriginal);
-            int[] cipherText=program.Encoding(M, roundKeys);
+            int[,] roundKeys = program.EncryptionKeys(KOriginal);
+            int[] cipherText=program.Encryption(M, roundKeys);
 
             Console.WriteLine();
+            Console.WriteLine();
             Console.WriteLine("Şifreli Metin");
+            Console.Write(program.BinaryToString(cipherText)+"  ");
             for (int k = 0; k < cipherText.Length; k++)
             {
                 Console.Write(cipherText[k]);
@@ -76,27 +43,65 @@ namespace DES_Algorithm
 
             #region Şifre çözme
 
-            int[,] keys=program.EncodingKeys(KOriginal);
+            int[,] keys=program.EncryptionKeys(KOriginal);   // Şifreler karşı tarafta tekrar üretiliyor.
             int[] endKey=new int[56];
             for (int i = 0; i < 56; i++)
             {
-                endKey[i] = keys[15, i];
+                endKey[i] = keys[15, i];                    // En son anahtarla şifre çözme gerçekleştiriliyor.
             }
 
-            int[,] decodeKeys=program.DecodingKeys(endKey);
-            int[] pText = program.Encoding(cipherText, decodeKeys);
+            int[,] decodeKeys=program.DecryptionKeys(endKey);
+            int[] pText = program.Encryption(cipherText, decodeKeys);
 
             Console.WriteLine();
-            Console.WriteLine("Şifresiz Çözülen Metin");
+            Console.WriteLine();
+            Console.WriteLine("Şifresi Çözülen Metin");
+            Console.Write(program.BinaryToString(pText)+"  ");
             for (int k = 0; k < pText.Length; k++)
             {
                 Console.Write(pText[k]);
             }
             #endregion
+
             Console.Read();
         }
 
-        public int[,] DecodingKeys(int[] keys)
+        public int[] StringToBinary(string data)
+        {
+            int[] array = new int[64];
+            StringBuilder sb = new StringBuilder();
+
+            foreach (char c in data.ToCharArray())
+            {
+                string a = Convert.ToString(c, 2).PadLeft(8, '0');
+                sb.Append(a);
+            }
+
+            for (int i = 0; i < sb.ToString().Length; i++)
+            {
+                array[i] = Convert.ToInt32(sb.ToString().Substring(i, 1));
+            }
+
+            return array;
+        }
+
+        public string BinaryToString(int[] array)
+        {
+            string cipherText = "";
+            foreach (int item in array)
+            {
+                cipherText += item.ToString();
+            }
+            List<Byte> byteList = new List<Byte>();
+
+            for (int i = 0; i < cipherText.Length; i += 8)
+            {
+                byteList.Add(Convert.ToByte(cipherText.Substring(i, 8), 2));
+            }
+            return Encoding.ASCII.GetString(byteList.ToArray());
+        }
+
+        public int[,] DecryptionKeys(int[] keys)
         {
             int[] K = keys;  // Key permutation
 
@@ -124,14 +129,14 @@ namespace DES_Algorithm
             return keyMerges;
         }
 
-        public int[] Encoding(int[] M,int[,] roundKeys)
+        public int[] Encryption(int[] M,int[,] roundKeys)
         {
            
             int[,] keys = RoundKey(roundKeys);
-            return DataEncoding(keys, M);
+            return DataEncryption(keys, M);
         }
 
-        public int[] DataEncoding(int[,] keys,int[] M)
+        public int[] DataEncryption(int[,] keys,int[] M)
         {
             #region Datanın şifrelenmesi
 
@@ -181,7 +186,7 @@ namespace DES_Algorithm
             #endregion
         }
 
-        public int[,] EncodingKeys(int[] key)
+        public int[,] EncryptionKeys(int[] key)
         {
             int[] K = Permutation(key, Const.PC1);  // Key permutation
 
